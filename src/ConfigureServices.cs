@@ -46,17 +46,27 @@ public static class ConfigureServices
 
         builder.Services.AddDbContext<AppDbContext>(options =>
         {
-            options.UseSqlServer(connectionString, sqlOptions =>
+            // Use SQLite for Development, SQL Server for Production
+            if (builder.Environment.IsDevelopment())
             {
-                // Use split queries for better performance with collections
-                sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-            });
+                options.UseSqlite(connectionString);
+            }
+            else
+            {
+                options.UseSqlServer(connectionString, sqlOptions =>
+                {
+                    // Use split queries for better performance with collections
+                    sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                });
+            }
 
-            // Enable sensitive data logging only in development
+            // Suppress pending model changes warning in development (SQLite compatibility)
             if (builder.Environment.IsDevelopment())
             {
                 options.EnableSensitiveDataLogging();
                 options.EnableDetailedErrors();
+                options.ConfigureWarnings(warnings =>
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
             }
         });
     }
