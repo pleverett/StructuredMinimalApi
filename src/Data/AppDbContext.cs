@@ -70,6 +70,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         builder.HasIndex(x => x.ReferenceId)
             .IsUnique();
 
+        // Index on foreign key for user's posts
+        builder.HasIndex(x => x.UserId);
+
+        // Index on CreatedAtUtc for sorting (descending for newest first)
+        builder.HasIndex(x => x.CreatedAtUtc)
+            .IsDescending();
+
+        // Composite index for efficient "get user's posts ordered by date" queries
+        builder.HasIndex(x => new { x.UserId, x.CreatedAtUtc })
+            .IsDescending(false, true); // UserId ASC, CreatedAtUtc DESC
+
         builder.Property(x => x.Title)
             .HasMaxLength(100);
 
@@ -91,6 +102,23 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         builder.HasIndex(x => x.ReferenceId)
             .IsUnique();
 
+        // Index on PostId foreign key for "get comments for post" queries
+        builder.HasIndex(x => x.PostId);
+
+        // Index on UserId foreign key for "get user's comments" queries
+        builder.HasIndex(x => x.UserId);
+
+        // Index on CreatedAtUtc for sorting comments
+        builder.HasIndex(x => x.CreatedAtUtc)
+            .IsDescending();
+
+        // Composite index for "get post's comments ordered by date"
+        builder.HasIndex(x => new { x.PostId, x.CreatedAtUtc })
+            .IsDescending(false, true); // PostId ASC, CreatedAtUtc DESC
+
+        // Index on ReplyToCommentId for fetching comment replies
+        builder.HasIndex(x => x.ReplyToCommentId);
+
         builder.HasMany(x => x.Likes)
             .WithOne(x => x.Comment)
             .HasForeignKey(x => x.CommentId)
@@ -106,18 +134,33 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         var builder = modelBuilder.Entity<PostLike>();
         builder.HasKey(x => new { x.PostId, x.UserId });
+
+        // Index on UserId to check "has user liked this post"
+        // PostId is already indexed as part of composite key
+        builder.HasIndex(x => x.UserId);
     }
 
     private static void ConfigureFollowsTable(ModelBuilder modelBuilder)
     {
         var builder = modelBuilder.Entity<Follow>();
         builder.HasKey(x => new { x.FollowerUserId, x.FollowedUserId });
+
+        // Index on FollowedUserId for "get user's followers" queries
+        // FollowerUserId is already indexed as part of composite key
+        builder.HasIndex(x => x.FollowedUserId);
+
+        // Index on CreatedAtUtc for ordering follows
+        builder.HasIndex(x => x.CreatedAtUtc);
     }
 
     private static void ConfigureCommentLikesTable(ModelBuilder modelBuilder)
     {
         var builder = modelBuilder.Entity<CommentLike>();
         builder.HasKey(x => new { x.CommentId, x.UserId });
+
+        // Index on UserId to check "has user liked this comment"
+        // CommentId is already indexed as part of composite key
+        builder.HasIndex(x => x.UserId);
     }
 
     private static void ConfigureRefreshTokensTable(ModelBuilder modelBuilder)
