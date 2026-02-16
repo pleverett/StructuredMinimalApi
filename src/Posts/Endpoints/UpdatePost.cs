@@ -1,4 +1,6 @@
-﻿namespace Chirper.Posts.Endpoints;
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace Chirper.Posts.Endpoints;
 
 public class UpdatePost : IEndpoint
 {
@@ -20,16 +22,33 @@ public class UpdatePost : IEndpoint
         }
     }
 
-    private static async Task<Ok> Handle(Request request, AppDbContext database, ClaimsPrincipal claimsPrincipal, CancellationToken cancellationToken)
+    private static async Task<Results<Ok, Conflict<ProblemDetails>>> Handle(
+        Request request, 
+        AppDbContext database, 
+        ClaimsPrincipal claimsPrincipal, 
+        CancellationToken cancellationToken)
     {
-        var post = await database.Posts.SingleAsync(x => x.Id == request.Id, cancellationToken);
-        post.Title = request.Title;
-        post.Content = request.Content;
-        post.UpdatedAtUtc = DateTime.UtcNow;
-        await database.SaveChangesAsync(cancellationToken);
+        try
+        {
+            var post = await database.Posts.SingleAsync(x => x.Id == request.Id, cancellationToken);
+            post.Title = request.Title;
+            post.Content = request.Content;
+            post.UpdatedAtUtc = DateTime.UtcNow;
+            await database.SaveChangesAsync(cancellationToken);
 
-        // TODO: Publish post updated event
-        
-        return TypedResults.Ok();
+            // TODO: Publish post updated event
+            
+            return TypedResults.Ok();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return TypedResults.Conflict(new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Title = "Concurrency conflict",
+                Detail = "The post was modified by another user. Please refresh and try again.",
+                Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.8"
+            });
+        }
     }
 }

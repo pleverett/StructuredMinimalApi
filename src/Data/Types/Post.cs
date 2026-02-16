@@ -1,4 +1,6 @@
-﻿namespace Chirper.Data.Types;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Chirper.Data.Types;
 
 public class Post : IEntity, IOwnedEntity
 {
@@ -10,6 +12,10 @@ public class Post : IEntity, IOwnedEntity
     public User User { get; init; } = null!;
     public DateTime CreatedAtUtc { get; private init; } = DateTime.UtcNow;
     public DateTime? UpdatedAtUtc { get; set; }
+    
+    [Timestamp]
+    public byte[]? RowVersion { get; set; }
+    
     public List<PostLike> Likes { get; init; } = [];
     public List<Comment> Comments { get; init; } = [];
 }

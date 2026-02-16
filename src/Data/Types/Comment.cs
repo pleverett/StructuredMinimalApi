@@ -1,4 +1,6 @@
-﻿namespace Chirper.Data.Types;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Chirper.Data.Types;
 
 public class Comment : IEntity, IOwnedEntity
 {
@@ -13,6 +15,10 @@ public class Comment : IEntity, IOwnedEntity
     public Comment? ReplyToComment { get; init; }
     public DateTime CreatedAtUtc { get; private init; } = DateTime.UtcNow;
     public DateTime? UpdatedAtUtc { get; set; }
+    
+    [Timestamp]
+    public byte[]? RowVersion { get; set; }
+    
     public List<Comment> Replies { get; init; } = [];
     public List<CommentLike> Likes { get; init; } = [];
 }
