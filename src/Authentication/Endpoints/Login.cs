@@ -10,7 +10,7 @@ public class Login : IEndpoint
         .WithRequestValidation<Request>();
 
     public record Request(string Username, string Password);
-    public record Response(string Token);
+    public record Response(string AccessToken, string RefreshToken);
     public class RequestValidator : AbstractValidator<Request>
     {
         public RequestValidator()
@@ -22,15 +22,25 @@ public class Login : IEndpoint
 
     private static async Task<Results<Ok<Response>, UnauthorizedHttpResult>> Handle(Request request, AppDbContext database, Jwt jwt, CancellationToken cancellationToken)
     {
-        var user = await database.Users.SingleOrDefaultAsync(x => x.Username == request.Username && x.Password == request.Password, cancellationToken);
+        var user = await database.Users
+            .SingleOrDefaultAsync(x => x.Username == request.Username, cancellationToken);
 
-        if (user is null || user.Password != request.Password)
+        if (user is null || !user.VerifyPassword(request.Password))
         {
             return TypedResults.Unauthorized();
         }
 
-        var token = jwt.GenerateToken(user);
-        var response = new Response(token);
+        var accessToken = jwt.GenerateToken(user);
+        var refreshToken = new RefreshToken
+        {
+            Token = Jwt.GenerateRefreshToken(),
+            UserId = user.Id,
+            ExpiresAtUtc = DateTime.UtcNow.Add(SecurityConstants.RefreshTokenLifetime)
+        };
+        await database.RefreshTokens.AddAsync(refreshToken, cancellationToken);
+        await database.SaveChangesAsync(cancellationToken);
+
+        var response = new Response(accessToken, refreshToken.Token);
         return TypedResults.Ok(response);
     }
 }

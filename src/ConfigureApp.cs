@@ -6,6 +6,8 @@ public static class ConfigureApp
 {
     public static async Task Configure(this WebApplication app)
     {
+        app.UseExceptionHandler();
+        app.UseRateLimiter();
         app.UseSerilogRequestLogging();
         app.UseSwagger();
         app.UseSwaggerUI();

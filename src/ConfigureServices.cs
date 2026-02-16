@@ -1,6 +1,8 @@
 ﻿using Chirper.Authentication.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.Threading.RateLimiting;
 
 namespace Chirper;
 
@@ -13,6 +15,8 @@ public static class ConfigureServices
         builder.AddDatabase();
         builder.Services.AddValidatorsFromAssembly(typeof(ConfigureServices).Assembly);
         builder.AddJwtAuthentication();
+        builder.AddExceptionHandling();
+        builder.AddRateLimiting();
     }
 
     private static void AddSwagger(this WebApplicationBuilder builder)
@@ -35,9 +39,24 @@ public static class ConfigureServices
 
     private static void AddDatabase(this WebApplicationBuilder builder)
     {
+        var connectionString = builder.Configuration.GetConnectionString("Default");
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(connectionString, nameof(connectionString));
+
         builder.Services.AddDbContext<AppDbContext>(options =>
         {
-            options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
+            options.UseSqlServer(connectionString, sqlOptions =>
+            {
+                // Use split queries for better performance with collections
+                sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+            });
+
+            // Enable sensitive data logging only in development
+            if (builder.Environment.IsDevelopment())
+            {
+                options.EnableSensitiveDataLogging();
+                options.EnableDetailedErrors();
+            }
         });
     }
 
@@ -59,5 +78,85 @@ public static class ConfigureServices
 
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
         builder.Services.AddTransient<Jwt>();
+    }
+
+    private static void AddExceptionHandling(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddProblemDetails(options =>
+        {
+            options.CustomizeProblemDetails = context =>
+            {
+                context.ProblemDetails.Extensions.TryAdd("traceId", context.HttpContext.TraceIdentifier);
+
+                // Don't expose exception details in production
+                if (!builder.Environment.IsDevelopment())
+                {
+                    context.ProblemDetails.Extensions.Remove("exception");
+                    context.ProblemDetails.Extensions.Remove("stackTrace");
+                }
+            };
+        });
+
+        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+    }
+
+    private static void AddRateLimiting(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            // General API rate limit
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+            {
+                return RateLimitPartition.GetFixedWindowLimiter("global", _ => new FixedWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromSeconds(10),
+                    PermitLimit = 100,
+                    QueueLimit = 0
+                });
+            });
+
+            // Stricter rate limit for authentication endpoints
+            options.AddPolicy("auth", context =>
+            {
+                return RateLimitPartition.GetFixedWindowLimiter("auth", _ => new FixedWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromMinutes(1),
+                    PermitLimit = 5,
+                    QueueLimit = 0
+                });
+            });
+
+            options.OnRejected = async (context, cancellationToken) =>
+            {
+                context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+
+                if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+                {
+                    await context.HttpContext.Response.WriteAsJsonAsync(
+                        new ProblemDetails
+                        {
+                            Status = StatusCodes.Status429TooManyRequests,
+                            Title = "Too many requests",
+                            Detail = $"Rate limit exceeded. Please try again in {retryAfter.TotalSeconds} seconds.",
+                            Instance = context.HttpContext.Request.Path
+                        },
+                        cancellationToken);
+                }
+                else
+                {
+                    await context.HttpContext.Response.WriteAsJsonAsync(
+                        new ProblemDetails
+                        {
+                            Status = StatusCodes.Status429TooManyRequests,
+                            Title = "Too many requests",
+                            Detail = "Rate limit exceeded. Please try again later.",
+                            Instance = context.HttpContext.Request.Path
+                        },
+                        cancellationToken);
+                }
+            };
+        });
     }
 }

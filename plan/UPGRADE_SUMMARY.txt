@@ -1,0 +1,281 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                                                                           ║
+║     .NET 10 UPGRADE IMPLEMENTATION PLAN - CREATED ✅                      ║
+║                                                                           ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+📋 PLAN OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Project:        Chirper Social Media API
+Current:        .NET 8.0
+Target:         .NET 10.0
+Architecture:   Vertical Slice Architecture with Minimal APIs
+Status:         Planned
+Timeline:       2-3 weeks
+Total Tasks:    105 tasks across 10 phases
+
+
+📂 PLAN LOCATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: .\plan\upgrade-dotnet-10-v1.md
+
+This comprehensive plan includes:
+✓ Detailed requirements and constraints
+✓ 10 implementation phases with 105 specific tasks
+✓ Risk assessment and mitigation strategies
+✓ Testing strategy (33 tests)
+✓ Alternative approaches considered
+✓ Dependencies and affected files
+✓ Success criteria and timeline
+
+
+🎯 IMPLEMENTATION PHASES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Phase 1:  Pre-Upgrade Assessment & Preparation (10 tasks)
+          ├─ Install .NET 10 SDK
+          ├─ Create feature branch
+          ├─ Document baseline
+          └─ Analyze breaking changes
+
+Phase 2:  Project File & SDK Updates (7 tasks)
+          ├─ Update TargetFramework to net10.0
+          ├─ Update Dockerfile
+          └─ Configure SDK version
+
+Phase 3:  NuGet Package Updates (14 tasks)
+          ├─ Update all Microsoft.* packages to 10.0.x
+          ├─ Update FluentValidation
+          ├─ Update Serilog, Sqids, Swashbuckle
+          └─ Resolve dependencies
+
+Phase 4:  Code Modernization & API Updates (14 tasks)
+          ├─ Update hosting model
+          ├─ Update JWT authentication
+          ├─ Review Minimal APIs
+          ├─ Update EF Core configurations
+          └─ Apply C# 13 features
+
+Phase 5:  Database & EF Core Migration (8 tasks)
+          ├─ Test EF Core 10 compatibility
+          ├─ Review query performance
+          └─ Benchmark database operations
+
+Phase 6:  Testing & Validation (14 tasks)
+          ├─ Build and fix errors
+          ├─ Run unit/integration tests
+          ├─ Test all endpoints
+          ├─ Verify authentication
+          └─ Load testing
+
+Phase 7:  Performance Benchmarking (8 tasks)
+          ├─ Create baseline metrics
+          ├─ Compare startup time
+          ├─ Compare throughput
+          └─ Analyze GC improvements
+
+Phase 8:  CI/CD Pipeline Updates (8 tasks)
+          ├─ Update GitHub Actions
+          ├─ Update Docker pipeline
+          └─ Test deployments
+
+Phase 9:  Documentation Updates (9 tasks)
+          ├─ Update README.md
+          ├─ Document breaking changes
+          ├─ Create migration guide
+          └─ Update ADRs
+
+Phase 10: Deployment & Rollout (13 tasks)
+          ├─ Deploy to dev/staging
+          ├─ Run UAT
+          ├─ Deploy to production
+          ├─ Monitor metrics
+          └─ Merge to main
+
+
+📦 PACKAGES TO UPGRADE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Microsoft Packages (8.0.7 → 10.0.x):
+  • Microsoft.AspNetCore.Authentication.JwtBearer
+  • Microsoft.AspNetCore.OpenApi
+  • Microsoft.EntityFrameworkCore
+  • Microsoft.EntityFrameworkCore.Design
+  • Microsoft.EntityFrameworkCore.SqlServer
+
+Third-Party Packages:
+  • FluentValidation (11.9.2 → latest)
+  • FluentValidation.DependencyInjectionExtensions
+  • Serilog.AspNetCore (8.0.1 → latest)
+  • Swashbuckle.AspNetCore (6.6.2 → latest)
+  • Sqids (3.1.0 → latest)
+  • Microsoft.VisualStudio.Azure.Containers.Tools.Targets
+
+
+🧪 TESTING STRATEGY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Unit Tests:       7 test scenarios
+Integration Tests: 8 test scenarios  
+Performance Tests: 7 benchmark scenarios
+System Tests:     6 deployment scenarios
+Security Tests:   5 security validations
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Total:           33 comprehensive tests
+
+
+⚠️ RISKS & MITIGATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+RISK-001: Breaking changes in .NET 10 APIs
+          ➜ Mitigation: Review docs, test thoroughly, maintain rollback
+
+RISK-002: NuGet package incompatibility
+          ➜ Mitigation: Test all packages, have alternatives ready
+
+RISK-003: Performance regression
+          ➜ Mitigation: Comprehensive benchmarking
+
+RISK-004: Database compatibility with EF Core 10
+          ➜ Mitigation: Test migrations, backup database
+
+RISK-005: CI/CD pipeline disruption
+          ➜ Mitigation: Test in feature branch first
+
+RISK-006: Production deployment issues
+          ➜ Mitigation: Blue-green deployment, rollback plan
+
+RISK-007: Developer environment setup
+          ➜ Mitigation: Clear docs, team support
+
+RISK-008: Authentication/Security vulnerabilities
+          ➜ Mitigation: Security testing, code review
+
+
+📊 SUCCESS CRITERIA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ All 105 tasks completed
+✓ All tests passing (unit, integration, system)
+✓ Performance ≥ .NET 8.0 baseline
+✓ Zero downtime deployment
+✓ No critical bugs for 1 week post-deployment
+✓ Team using .NET 10 successfully
+✓ Documentation fully updated
+
+
+🚀 QUICK START GUIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Review the Plan
+   PS> code .\plan\upgrade-dotnet-10-v1.md
+
+2. Install .NET 10 SDK
+   Download from: https://dotnet.microsoft.com/download/dotnet/10.0
+
+3. Create Feature Branch
+   PS> git checkout -b upgrade/dotnet-10
+
+4. Start with Phase 1
+   Follow tasks TASK-001 through TASK-010
+
+5. Use Copilot Resources
+   • @workspace using dotnet-upgrade.instructions
+   • @workspace acting as expert-dotnet-software-engineer.agent
+   • #file:copilot-resources/prompts/dotnet-upgrade.prompt.md
+
+
+💡 RECOMMENDED WORKFLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Daily Development:
+  @workspace using dotnet-upgrade.instructions and acting as 
+  expert-dotnet-software-engineer.agent, help me with TASK-XXX
+
+Before Each Phase:
+  @workspace using planner.agent, review Phase X requirements
+
+During Testing:
+  @workspace using tdd-red/green/refactor.agent, create tests for
+  the upgraded components
+
+Before Commit:
+  @workspace using gilfoyle.agent and code-review-generic.instructions,
+  review my changes
+
+
+📝 TRACKING PROGRESS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Update the plan file as you complete tasks:
+
+1. Mark task as completed: Change | | to | ✅ |
+2. Add completion date: Add date in YYYY-MM-DD format
+3. Update status badge when phase completes
+4. Document any issues or deviations in the plan
+
+
+🔗 RELATED RESOURCES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Copilot Resources:
+  • copilot-resources/instructions/dotnet-upgrade.instructions.md
+  • copilot-resources/prompts/dotnet-upgrade.prompt.md
+  • copilot-resources/prompts/update-implementation-plan.prompt.md
+  • copilot-resources/agents/dotnet-upgrade.agent.md
+  • copilot-resources/agents/expert-dotnet-software-engineer.agent.md
+
+Microsoft Documentation:
+  • What's new in .NET 10
+  • .NET 10 Breaking Changes
+  • Migrate from ASP.NET Core 8.0 to 10.0
+  • Entity Framework Core 10 Release Notes
+  • C# 13 Language Features
+
+
+📅 ESTIMATED TIMELINE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Week 1: Phases 1-4 (Assessment, Updates, Code Changes)
+        ├─ Day 1-2: Assessment & project file updates
+        ├─ Day 3-4: Package updates
+        └─ Day 5: Code modernization
+
+Week 2: Phases 5-7 (Database, Testing, Performance)
+        ├─ Day 1-2: EF Core migration & testing
+        ├─ Day 3-4: Comprehensive testing
+        └─ Day 5: Performance benchmarking
+
+Week 3: Phases 8-10 (CI/CD, Documentation, Deployment)
+        ├─ Day 1-2: CI/CD pipeline updates
+        ├─ Day 3: Documentation
+        ├─ Day 4-5: Staged deployment
+        └─ Weekend: Production monitoring
+
+
+✅ NEXT STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+☐ 1. Review the complete plan: .\plan\upgrade-dotnet-10-v1.md
+☐ 2. Get team sign-off (Tech Lead, DevOps, QA, Product)
+☐ 3. Schedule upgrade sprint/iteration
+☐ 4. Install .NET 10 SDK on all dev machines
+☐ 5. Create feature branch: upgrade/dotnet-10
+☐ 6. Start Phase 1: Pre-Upgrade Assessment
+☐ 7. Use Copilot agents to assist with each phase
+☐ 8. Track progress by marking tasks complete
+☐ 9. Monitor and document any issues
+☐ 10. Celebrate successful upgrade! 🎉
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ Ready to upgrade Chirper to .NET 10! ✨
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Plan created using:
+  • update-implementation-plan.prompt.md
+  • dotnet-upgrade.prompt.md
+  • dotnet-upgrade.instructions.md
+

@@ -10,14 +10,24 @@ public class Signup : IEndpoint
         .WithRequestValidation<Request>();
 
     public record Request(string Username, string Password, string Name);
-    public record Response(string Token);
+    public record Response(string AccessToken, string RefreshToken);
     public class RequestValidator : AbstractValidator<Request>
     {
         public RequestValidator()
         {
-            RuleFor(x => x.Username).NotEmpty();
-            RuleFor(x => x.Password).NotEmpty();
-            RuleFor(x => x.Name).NotEmpty();
+            RuleFor(x => x.Username)
+                .NotEmpty()
+                .MinimumLength(3)
+                .MaximumLength(50);
+            
+            RuleFor(x => x.Password)
+                .NotEmpty()
+                .MinimumLength(8)
+                .WithMessage("Password must be at least 8 characters long");
+            
+            RuleFor(x => x.Name)
+                .NotEmpty()
+                .MaximumLength(100);
         }
     }
 
@@ -34,14 +44,23 @@ public class Signup : IEndpoint
         var user = new User
         {
             Username = request.Username,
-            Password = request.Password,
+            PasswordHash = User.HashPassword(request.Password),
             DisplayName = request.Name
         };
         await database.Users.AddAsync(user, cancellationToken);
         await database.SaveChangesAsync(cancellationToken);
 
-        var token = jwt.GenerateToken(user);
-        var response = new Response(token);
+        var accessToken = jwt.GenerateToken(user);
+        var refreshToken = new RefreshToken
+        {
+            Token = Jwt.GenerateRefreshToken(),
+            UserId = user.Id,
+            ExpiresAtUtc = DateTime.UtcNow.Add(SecurityConstants.RefreshTokenLifetime)
+        };
+        await database.RefreshTokens.AddAsync(refreshToken, cancellationToken);
+        await database.SaveChangesAsync(cancellationToken);
+
+        var response = new Response(accessToken, refreshToken.Token);
         return TypedResults.Ok(response);
     }
 }

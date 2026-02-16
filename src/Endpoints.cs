@@ -24,11 +24,13 @@ public static class Endpoints
     private static void MapAuthenticationEndpoints(this IEndpointRouteBuilder app)
     {
         var endpoints = app.MapGroup("/auth")
-            .WithTags("Authentication");
+            .WithTags("Authentication")
+            .RequireRateLimiting("auth");
             
         endpoints.MapPublicGroup()
             .MapEndpoint<Signup>()
-            .MapEndpoint<Login>();
+            .MapEndpoint<Login>()
+            .MapEndpoint<RefreshTokenEndpoint>();
     }
 
     private static void MapPostEndpoints(this IEndpointRouteBuilder app)

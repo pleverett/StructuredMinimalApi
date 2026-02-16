@@ -8,6 +8,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Comment> Comments { get; set; }
     public DbSet<CommentLike> CommentLikes { get; set; }
     public DbSet<Follow> Follows { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -17,6 +18,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         ConfigureLikesTable(modelBuilder);
         ConfigureFollowsTable(modelBuilder);
         ConfigureCommentLikesTable(modelBuilder);
+        ConfigureRefreshTokensTable(modelBuilder);
         base.OnModelCreating(modelBuilder);
     }
 
@@ -116,5 +118,20 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         var builder = modelBuilder.Entity<CommentLike>();
         builder.HasKey(x => new { x.CommentId, x.UserId });
+    }
+
+    private static void ConfigureRefreshTokensTable(ModelBuilder modelBuilder)
+    {
+        var builder = modelBuilder.Entity<RefreshToken>();
+
+        builder.HasIndex(x => x.Token)
+            .IsUnique();
+
+        builder.HasIndex(x => x.UserId);
+
+        builder.HasOne(x => x.User)
+            .WithMany()
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
