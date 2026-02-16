@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+﻿using Chirper.Common.Api.Middleware;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 using System.Text.Json;
 
@@ -8,6 +9,7 @@ public static class ConfigureApp
 {
     public static async Task Configure(this WebApplication app)
     {
+        app.UseCorrelationId();
         app.UseExceptionHandler();
         app.UseRateLimiter();
         app.UseSerilogRequestLogging();

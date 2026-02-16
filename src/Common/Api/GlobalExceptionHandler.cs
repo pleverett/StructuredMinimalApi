@@ -16,6 +16,8 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             httpContext.TraceIdentifier,
             httpContext.Request.Path);
 
+        var correlationId = httpContext.Items["CorrelationId"]?.ToString() ?? httpContext.TraceIdentifier;
+
         var problemDetails = new ProblemDetails
         {
             Status = StatusCodes.Status500InternalServerError,
@@ -24,7 +26,8 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             Instance = httpContext.Request.Path,
             Extensions =
             {
-                ["traceId"] = httpContext.TraceIdentifier
+                ["traceId"] = httpContext.TraceIdentifier,
+                ["correlationId"] = correlationId
             }
         };
 

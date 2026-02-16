@@ -89,6 +89,12 @@ public static class ConfigureServices
             {
                 context.ProblemDetails.Extensions.TryAdd("traceId", context.HttpContext.TraceIdentifier);
 
+                // Add correlation ID if available
+                if (context.HttpContext.Items.TryGetValue("CorrelationId", out var correlationId))
+                {
+                    context.ProblemDetails.Extensions.TryAdd("correlationId", correlationId);
+                }
+
                 // Don't expose exception details in production
                 if (!builder.Environment.IsDevelopment())
                 {
