@@ -1,6 +1,9 @@
 # Structured Minimal API
 An example on how to structure a minmal API using [Vertical Slice Architecture](https://www.jimmybogard.com/vertical-slice-architecture/)
 
+## Requirements
+- [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later
+
 ## Video Walkthrough
 Prefer watching videos rather than reading the code? Check [this video out](https://www.youtube.com/watch?v=ZA2X1gaAhJk), it's a walkthrough of the solution and explains some concepts / reasoning
 
