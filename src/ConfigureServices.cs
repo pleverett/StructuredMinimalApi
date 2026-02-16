@@ -17,6 +17,7 @@ public static class ConfigureServices
         builder.AddJwtAuthentication();
         builder.AddExceptionHandling();
         builder.AddRateLimiting();
+        builder.AddHealthChecks();
     }
 
     private static void AddSwagger(this WebApplicationBuilder builder)
@@ -158,5 +159,15 @@ public static class ConfigureServices
                 }
             };
         });
+    }
+
+    private static void AddHealthChecks(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddHealthChecks()
+            .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("API is running"))
+            .AddDbContextCheck<AppDbContext>(
+                name: "database",
+                failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy,
+                tags: new[] { "ready" });
     }
 }
